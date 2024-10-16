@@ -1,3 +1,4 @@
+import csv
 import pandas as pd
 import os
 
@@ -369,7 +370,20 @@ def read_and_clean(path_to_df):
 
 def combine_mentor_info(mentors_df, mentor_activities_by_category):
     return pd.merge(mentors_df, mentor_activities_by_category, on='Computing id', how='left')  
-     
+
+def write_mentor_assignments_to_csv(mentor_assignments: dict, output_file: str):
+    with open(output_file, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        
+        # Write header
+        writer.writerow(['Mentor ID', 'Mentees'])
+
+        # Write mentor-mentee pairs
+        for mentor_id, mentees in mentor_assignments.items():
+            # Convert list of mentees to a comma-separated string
+            mentees_str = ', '.join(mid for mid, score in mentees)
+            writer.writerow([mentor_id, mentees_str])
+
 def test():
     activities_df = read_and_clean(activities_path)
     activities_by_mentor = get_mentor_activities_and_categories(activities_df)
@@ -395,6 +409,7 @@ def main():
     mentee_ids = set(mentees_df['Computing id'].values)
     mentor_assignments = assign_mentees_to_mentors(match_df, max_mentees_per_mentor, mentee_ids)
     print_mentor_assignments(mentor_assignments)
+    write_mentor_assignments_to_csv(mentor_assignments, 'mentor_assignments.csv')
 
     # Write explanations
     delete_folder_contents('explanations')
